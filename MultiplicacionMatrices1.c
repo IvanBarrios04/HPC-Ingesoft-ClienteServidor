@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Multiplicación de matrices cuadradas (C = A * B)
+    clock_t start = clock();
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             for (int k = 0; k < N; k++) {
@@ -45,6 +46,8 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    clock_t end = clock();
+    double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
 
     // Liberar la memoria dinámica asignada
     for (int i = 0; i < N; i++) {
@@ -58,6 +61,7 @@ int main(int argc, char *argv[]) {
 
     // Mensaje de finalización
     printf("finalizado\n");
-
+    printf("Tiempo de multiplicacion (N=%d): %.9f s\n", N, elapsed);
+    
     return 0;
 }
