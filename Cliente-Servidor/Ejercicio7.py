@@ -1,624 +1,329 @@
-"""
-Ejercicio 7: Sistema de Inventario Inteligente
-Patrones: Singleton, Factory Method, Repository, Strategy, Adapter, Observer, Facade.
-
-Flujo: Cliente -> InventoryFacade -> InventoryManager (Subject) -> Repository / Strategy / Supplier
-"""
 from abc import ABC, abstractmethod
-
+from datetime import date
+from threading import Lock
 
 # ==========================================================
 # SINGLETON - Configuración centralizada
 # ==========================================================
+
 class InventoryConfig:
-    """Única fuente de verdad de los parámetros críticos (umbral mínimo de stock)."""
     _instance = None
+    _lock = Lock()
 
     def __new__(cls):
+        # Double-checked locking: seguro ante acceso concurrente
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._min_stock_threshold = 10
+            with cls._lock:
+                if cls._instance is None:
+                    inst = super().__new__(cls)
+                    inst.min_stock_threshold = 10
+                    cls._instance = inst
         return cls._instance
 
-    @property
-    def min_stock_threshold(self):
-        return self._min_stock_threshold
-
-    @min_stock_threshold.setter
-    def min_stock_threshold(self, value):
-        if not isinstance(value, int) or value < 0:
-            raise ValueError("El umbral debe ser un entero >= 0")
-        self._min_stock_threshold = value        # cambio visible al instante para todos los módulos
-
-    @classmethod
-    def reset(cls):
-        """Solo para pruebas unitarias."""
-        cls._instance = None
-
 
 # ==========================================================
-# DOMINIO - Productos
+# FACTORY METHOD - Creación de productos
 # ==========================================================
-class Product(ABC):
-    category = None                               # cada subclase fija su categoría
 
-    def __init__(self, product_id, name, stock=0, sales_history=None):
-        self.product_id = product_id
+class Product:
+    category = "general"
+
+    def __init__(self, sku, name, stock, demand_history=None):
+        self.sku = sku
         self.name = name
         self.stock = stock
-        self.sales_history = sales_history if sales_history is not None else []  # unidades por periodo
-        self.pending_order = False                # evita órdenes duplicadas
-
-    @abstractmethod
-    def storage_requirements(self):
-        ...
+        # Unidades vendidas por período (insumo de DemandBasedReorderStrategy)
+        self.demand_history = demand_history or []
 
     def __repr__(self):
-        return f"{type(self).__name__}(id={self.product_id!r}, name={self.name!r}, stock={self.stock})"
+        return f"{self.category}:{self.name}(stock={self.stock})"
 
 
 class ElectronicProduct(Product):
     category = "electronica"
 
-    def __init__(self, product_id, name, stock=0, sales_history=None, warranty_months=12):
-        super().__init__(product_id, name, stock, sales_history)
-        self.warranty_months = warranty_months
-
-    def storage_requirements(self):
-        return "Ambiente seco, protección antiestática"
-
 
 class FoodProduct(Product):
     category = "alimentos"
-
-    def storage_requirements(self):
-        return "Lugar fresco y seco"
 
 
 class ClothingProduct(Product):
     category = "ropa"
 
-    def __init__(self, product_id, name, stock=0, sales_history=None, size="M"):
-        super().__init__(product_id, name, stock, sales_history)
-        self.size = size
 
-    def storage_requirements(self):
-        return "Almacenamiento colgado o doblado, sin humedad"
-
-
-class PerishableProduct(Product):
-    category = "perecederos"
-
-    def __init__(self, product_id, name, stock=0, sales_history=None, expiration_date=None):
-        super().__init__(product_id, name, stock, sales_history)
-        self.expiration_date = expiration_date    # texto "AAAA-MM-DD"
-
-    def storage_requirements(self):
-        return "Refrigeración 2-8 °C, rotación FEFO"
-
-
-class FrozenProduct(Product):
-    category = "congelados"
-
-    def __init__(self, product_id, name, stock=0, sales_history=None, storage_temp_c=-18.0):
-        super().__init__(product_id, name, stock, sales_history)
-        self.storage_temp_c = storage_temp_c
-
-    def storage_requirements(self):
-        return f"Cadena de frío continua a {self.storage_temp_c} °C"
-
-
-# ==========================================================
-# FACTORY METHOD - Creación de productos por categoría
-# ==========================================================
-class ProductFactory(ABC):
-    """Creator: cada fábrica concreta decide qué Product instanciar."""
-    _registry = {}
-
-    @abstractmethod
-    def create_product(self, product_id, name, stock=0, **attrs):
-        ...
+class ProductFactory:
+    # Registro extensible: nuevas categorías se agregan sin tocar create_product (OCP)
+    _registry = {
+        "electronica": ElectronicProduct,
+        "alimentos": FoodProduct,
+        "ropa": ClothingProduct,
+    }
 
     @classmethod
-    def register(cls, category, factory):
-        cls._registry[category.lower()] = factory  # nueva categoría = nueva fábrica, sin tocar al cliente
+    def register_category(cls, category: str, product_cls: type):
+        cls._registry[category] = product_cls
 
     @classmethod
-    def create(cls, category, product_id, name, stock=0, **attrs):
+    def create_product(cls, category: str, sku, name, stock, demand_history=None) -> Product:
         try:
-            factory = cls._registry[category.lower()]
+            return cls._registry[category](sku, name, stock, demand_history)
         except KeyError:
-            raise ValueError(f"Categoría no soportada: '{category}'. Disponibles: {sorted(cls._registry)}")
-        return factory.create_product(product_id, name, stock, **attrs)
-
-
-class ElectronicProductFactory(ProductFactory):
-    def create_product(self, product_id, name, stock=0, **attrs):
-        return ElectronicProduct(product_id, name, stock, **attrs)
-
-
-class FoodProductFactory(ProductFactory):
-    def create_product(self, product_id, name, stock=0, **attrs):
-        return FoodProduct(product_id, name, stock, **attrs)
-
-
-class ClothingProductFactory(ProductFactory):
-    def create_product(self, product_id, name, stock=0, **attrs):
-        return ClothingProduct(product_id, name, stock, **attrs)
-
-
-class PerishableProductFactory(ProductFactory):
-    def create_product(self, product_id, name, stock=0, **attrs):
-        return PerishableProduct(product_id, name, stock, **attrs)
-
-
-class FrozenProductFactory(ProductFactory):
-    def create_product(self, product_id, name, stock=0, **attrs):
-        return FrozenProduct(product_id, name, stock, **attrs)
-
-
-ProductFactory.register(ElectronicProduct.category, ElectronicProductFactory())
-ProductFactory.register(FoodProduct.category, FoodProductFactory())
-ProductFactory.register(ClothingProduct.category, ClothingProductFactory())
-ProductFactory.register(PerishableProduct.category, PerishableProductFactory())
-ProductFactory.register(FrozenProduct.category, FrozenProductFactory())
+            raise ValueError(f"Categoría no soportada: {category}")
 
 
 # ==========================================================
-# REPOSITORY - Abstracción de la persistencia
+# REPOSITORY - Persistencia abstracta
 # ==========================================================
+
 class ProductRepository(ABC):
     @abstractmethod
-    def add(self, product):
-        ...
+    def add(self, product: Product): ...
 
     @abstractmethod
-    def get(self, product_id):
-        ...
+    def get(self, sku: str) -> Product: ...
 
     @abstractmethod
-    def update(self, product):
-        ...
+    def get_all(self) -> list: ...
 
     @abstractmethod
-    def delete(self, product_id):
-        ...
+    def update(self, product: Product): ...
 
     @abstractmethod
-    def list_all(self):
-        ...
+    def delete(self, sku: str): ...
 
 
 class InMemoryProductRepository(ProductRepository):
-    """Migrable a SQL/ERP implementando ProductRepository, sin tocar el dominio."""
-
     def __init__(self):
         self._store = {}
 
     def add(self, product):
-        if product.product_id in self._store:
-            raise ValueError(f"El producto '{product.product_id}' ya existe")
-        self._store[product.product_id] = product
+        if product.sku in self._store:
+            raise ValueError(f"SKU duplicado: {product.sku}")
+        self._store[product.sku] = product
 
-    def get(self, product_id):
-        return self._store.get(product_id)
+    def get(self, sku):
+        return self._store.get(sku)
 
-    def update(self, product):
-        if product.product_id not in self._store:
-            raise KeyError(f"Producto inexistente: {product.product_id}")
-        self._store[product.product_id] = product
-
-    def delete(self, product_id):
-        if product_id not in self._store:
-            raise KeyError(f"Producto inexistente: {product_id}")
-        del self._store[product_id]
-
-    def list_all(self):
+    def get_all(self):
         return list(self._store.values())
 
+    def update(self, product):
+        if product.sku not in self._store:
+            raise KeyError(product.sku)
+        self._store[product.sku] = product
+
+    def delete(self, sku):
+        self._store.pop(sku, None)
+
 
 # ==========================================================
-# STRATEGY - Algoritmos de reabastecimiento
+# STRATEGY - Reposición
 # ==========================================================
-def _ceil(x):
-    """Techo sin librerías externas."""
-    n = int(x)
-    return n + 1 if x > n else n
-
-
-class ReorderContext:
-    """Contexto que recibe toda estrategia: permite añadir algoritmos (p. ej. ML) sin cambiar la interfaz."""
-
-    def __init__(self, product, threshold, month):
-        self.product = product
-        self.threshold = threshold
-        self.month = month                        # 1-12
-
 
 class ReorderStrategy(ABC):
     @abstractmethod
-    def calculate_order_quantity(self, ctx):
-        ...
+    def calculate_quantity(self, product: Product) -> int:
+        pass
 
 
 class FixedReorderStrategy(ReorderStrategy):
     def __init__(self, quantity=50):
         self.quantity = quantity
 
-    def calculate_order_quantity(self, ctx):
+    def calculate_quantity(self, product):
         return self.quantity
 
 
 class DemandBasedReorderStrategy(ReorderStrategy):
-    """Cubre `coverage_periods` de demanda promedio más el stock de seguridad (umbral)."""
+    def __init__(self, periods_cover=2):
+        self.periods_cover = periods_cover
 
-    def __init__(self, coverage_periods=2, window=6, fallback=50):
-        self.coverage_periods = coverage_periods
-        self.window = window
-        self.fallback = fallback
-
-    def calculate_order_quantity(self, ctx):
-        history = ctx.product.sales_history[-self.window:]
-        if not history:
-            return self.fallback
-        average = sum(history) / len(history)
-        target = _ceil(average * self.coverage_periods) + ctx.threshold
-        return max(1, target - ctx.product.stock)
+    def calculate_quantity(self, product):
+        if not product.demand_history:
+            return 0
+        avg = sum(product.demand_history) / len(product.demand_history)
+        return max(0, round(avg * self.periods_cover) - product.stock)
 
 
 class SeasonalReorderStrategy(ReorderStrategy):
-    """Decora una estrategia base amplificándola en meses de alta temporada."""
+    def __init__(self, base=50, factors=None):
+        self.base = base
+        self.factors = factors or {11: 1.5, 12: 2.0}  # temporada alta
 
-    def __init__(self, base=None, peak_months=(11, 12), multiplier=2.4):
-        self.base = base if base is not None else FixedReorderStrategy(50)
-        self.peak_months = peak_months
-        self.multiplier = multiplier
-
-    def calculate_order_quantity(self, ctx):
-        qty = self.base.calculate_order_quantity(ctx)
-        return round(qty * self.multiplier) if ctx.month in self.peak_months else qty
+    def calculate_quantity(self, product):
+        return round(self.base * self.factors.get(date.today().month, 1.0))
 
 
 # ==========================================================
-# ADAPTER - Proveedores externos heterogéneos
+# ADAPTER - Proveedores externos (APIs no modificables)
 # ==========================================================
-class SupplierInterface(ABC):
-    """Interfaz Target uniforme que consume el motor de inventario."""
-
-    @abstractmethod
-    def order_product(self, product_id, amount):
-        """Retorna el identificador de confirmación del proveedor."""
-
 
 class ExternalSupplierAPI:
-    """API de tercero no modificable #1 (posicional, retorna str)."""
-
+    """API de terceros: interfaz propia e incompatible."""
     def send_purchase_order(self, item_code, units):
-        print(f"[PROVEEDOR EXTERNO] Orden confirmada para producto {item_code} | Cantidad: {units}")
-        return f"EXT-{item_code}-{units}"
+        return f"[ExternalSupplierAPI] PO item={item_code} units={units}"
 
 
-class GlobalLogisticsAPI:
-    """API de tercero no modificable #2 (payload dict, respuesta dict)."""
-    _counter = 0
-
-    def create_order(self, payload):
-        GlobalLogisticsAPI._counter += 1
-        order_id = f"GL-{GlobalLogisticsAPI._counter:04d}"
-        print(f"[GLOBAL LOGISTICS] {order_id}: sku={payload['sku']} quantity={payload['quantity']}")
-        return {"status": "ACCEPTED", "order_id": order_id}
+class LegacySupplierAPI:
+    """Otro proveedor, otro protocolo (payload tipo dict)."""
+    def createPO(self, payload: dict):
+        return f"[LegacySupplierAPI] PO {payload}"
 
 
-class ExternalSupplierAdapter(SupplierInterface):
-    def __init__(self, api):
-        self._api = api
-
-    def order_product(self, product_id, amount):
-        return self._api.send_purchase_order(product_id, amount)
+class SupplierAdapter(ABC):
+    @abstractmethod
+    def order(self, product: Product, quantity: int) -> str:
+        pass
 
 
-class GlobalLogisticsAdapter(SupplierInterface):
-    def __init__(self, api):
-        self._api = api
+class ExternalSupplierAdapter(SupplierAdapter):
+    def __init__(self, api: ExternalSupplierAPI):
+        self.api = api
 
-    def order_product(self, product_id, amount):
-        response = self._api.create_order({"sku": product_id, "quantity": amount})
-        if response["status"] != "ACCEPTED":
-            raise RuntimeError(f"Proveedor rechazó la orden: {response}")
-        return response["order_id"]
+    def order(self, product, quantity):
+        return self.api.send_purchase_order(product.sku, quantity)
+
+
+class LegacySupplierAdapter(SupplierAdapter):
+    def __init__(self, api: LegacySupplierAPI):
+        self.api = api
+
+    def order(self, product, quantity):
+        return self.api.createPO({"sku": product.sku, "qty": quantity})
 
 
 # ==========================================================
-# OBSERVER - Eventos y alertas desacopladas
+# OBSERVER - Alertas de stock
 # ==========================================================
-class StockEvent:
-    LOW_STOCK = "LOW_STOCK"
-    REORDER_PLACED = "REORDER_PLACED"
-
-    def __init__(self, event_type, product_id, message):
-        self.event_type = event_type
-        self.product_id = product_id
-        self.message = message
-
 
 class StockObserver(ABC):
     @abstractmethod
-    def update(self, event):
-        ...
+    def update(self, message):
+        pass
 
 
 class EmailAlert(StockObserver):
-    def __init__(self, recipient):
-        self.recipient = recipient
-
-    def update(self, event):
-        print(f"[EMAIL -> {self.recipient}] {event.product_id} ({event.event_type}): {event.message}")
+    def update(self, message):
+        print(f"[EMAIL] {message}")
 
 
 class SMSAlert(StockObserver):
-    def __init__(self, phone):
-        self.phone = phone
-
-    def update(self, event):
-        print(f"[SMS -> {self.phone}] {event.product_id} ({event.event_type}): {event.message}")
-
-
-class SlackAlert(StockObserver):
-    """Nuevo canal añadido sin modificar InventoryManager."""
-
-    def __init__(self, channel):
-        self.channel = channel
-
-    def update(self, event):
-        print(f"[SLACK {self.channel}] {event.product_id} ({event.event_type}): {event.message}")
-
-
-class StockEventPublisher:
-    """Subject reutilizable: la mecánica de Observer vive aquí, no en InventoryManager."""
-
-    def __init__(self):
-        self._observers = []
-
-    def attach(self, observer):
-        if observer not in self._observers:
-            self._observers.append(observer)
-
-    def detach(self, observer):
-        self._observers.remove(observer)
-
-    def notify(self, event):
-        for obs in self._observers:
-            try:
-                obs.update(event)
-            except Exception as exc:              # un canal caído no debe frenar a los demás
-                print(f"[WARN] Falló {type(obs).__name__}: {exc}")
+    def update(self, message):
+        print(f"[SMS] {message}")
 
 
 # ==========================================================
-# INVENTORY MANAGER - Núcleo estable (no cambia al extender)
+# INVENTORY MANAGER (Subject + orquestación de reposición)
 # ==========================================================
-class ReorderResult:
-    def __init__(self, product_id, quantity, confirmation, strategy, supplier):
-        self.product_id = product_id
-        self.quantity = quantity
-        self.confirmation = confirmation
-        self.strategy = strategy
-        self.supplier = supplier
-
-    def __repr__(self):
-        return (f"ReorderResult(product_id={self.product_id!r}, quantity={self.quantity}, "
-                f"confirmation={self.confirmation!r}, strategy={self.strategy!r}, "
-                f"supplier={self.supplier!r})")
-
 
 class InventoryManager:
-    def __init__(self, repository, default_supplier, default_strategy, config):
-        self._repo = repository
-        self._config = config
-        self._default_supplier = default_supplier
-        self._default_strategy = default_strategy
-        self._strategies = {}                     # overrides por categoría
-        self._suppliers = {}                      # overrides por categoría
-        self._publisher = StockEventPublisher()
-        self._current_month = 1                   # 1-12; configurable (define la temporada)
+    def __init__(self, repository: ProductRepository, supplier: SupplierAdapter):
+        self.repository = repository
+        self.supplier = supplier
+        self.config = InventoryConfig()
+        self.observers = []
+        self.default_strategy: ReorderStrategy = FixedReorderStrategy()
+        self.category_strategies = {}
 
-    # ---- Observer ----
-    def attach(self, observer):
-        self._publisher.attach(observer)
+    # Observer
+    def attach(self, observer: StockObserver):
+        self.observers.append(observer)
 
-    def detach(self, observer):
-        self._publisher.detach(observer)
+    def notify(self, message):
+        for obs in self.observers:
+            obs.update(message)
 
-    # ---- Strategy / Adapter: configuración en runtime ----
-    def set_strategy(self, strategy, category=None):
-        if category is None:
-            self._default_strategy = strategy
-        else:
-            self._strategies[category.lower()] = strategy
+    # Strategy (por categoría, intercambiable en runtime)
+    def set_strategy(self, category: str, strategy: ReorderStrategy):
+        self.category_strategies[category] = strategy
 
-    def set_supplier(self, supplier, category=None):
-        if category is None:
-            self._default_supplier = supplier
-        else:
-            self._suppliers[category.lower()] = supplier
+    def _strategy_for(self, product):
+        return self.category_strategies.get(product.category, self.default_strategy)
 
-    def set_current_month(self, month):
-        if not isinstance(month, int) or not 1 <= month <= 12:
-            raise ValueError("El mes debe ser un entero entre 1 y 12")
-        self._current_month = month
-
-    # ---- Operaciones de stock ----
-    def record_sale(self, product_id, units):
-        product = self._require(product_id)
-        if units <= 0 or units > product.stock:
-            raise ValueError(f"Venta inválida ({units}) con stock {product.stock}")
-        product.stock -= units
-        product.sales_history.append(units)
-        self._repo.update(product)
-
-    def receive_shipment(self, product_id, units):
-        product = self._require(product_id)
-        if units <= 0:
-            raise ValueError("La cantidad recibida debe ser positiva")
-        product.stock += units
-        product.pending_order = False             # ciclo cerrado: puede volver a alertar
-        self._repo.update(product)
-
-    # ---- Monitoreo y reorden ----
-    def monitor_inventory(self):
-        results = []
-        for product in self._repo.list_all():
-            result = self.check_product(product)
-            if result is not None:
-                results.append(result)
-        return results
-
-    def check_product(self, product):
-        threshold = self._config.min_stock_threshold
-        if product.stock > threshold or product.pending_order:
-            return None
-
-        self._publisher.notify(StockEvent(
-            StockEvent.LOW_STOCK, product.product_id,
-            f"'{product.name}' con stock crítico: {product.stock} (umbral {threshold})"))
-
-        strategy = self._strategies.get(product.category, self._default_strategy)
-        supplier = self._suppliers.get(product.category, self._default_supplier)
-        qty = strategy.calculate_order_quantity(ReorderContext(product, threshold, self._current_month))
-        if qty <= 0:
-            return None
-
-        print(f"Generando orden automática de '{product.name}' ({type(strategy).__name__})...")
-        confirmation = supplier.order_product(product.product_id, qty)
-        product.pending_order = True
-        self._repo.update(product)
-        self._publisher.notify(StockEvent(
-            StockEvent.REORDER_PLACED, product.product_id,
-            f"Orden {confirmation} por {qty} uds de '{product.name}'"))
-        return ReorderResult(product.product_id, qty, confirmation,
-                             type(strategy).__name__, type(supplier).__name__)
-
-    def stock_report(self):
-        return [(p.product_id, p.name, p.stock, p.pending_order) for p in self._repo.list_all()]
-
-    def _require(self, product_id):
-        product = self._repo.get(product_id)
-        if product is None:
-            raise KeyError(f"Producto inexistente: {product_id}")
-        return product
+    # Monitoreo
+    def check_stock(self):
+        orders = []
+        for product in self.repository.get_all():
+            if product.stock < self.config.min_stock_threshold:
+                self.notify(
+                    f"Stock bajo: {product.name} ({product.stock} < "
+                    f"{self.config.min_stock_threshold})"
+                )
+                qty = self._strategy_for(product).calculate_quantity(product)
+                if qty > 0:
+                    orders.append(self.supplier.order(product, qty))
+        return orders
 
 
 # ==========================================================
-# FACADE - Punto de entrada único
+# FACADE - Interfaz simplificada
 # ==========================================================
+
 class InventoryFacade:
-    """Solo orquesta y simplifica; la lógica vive en InventoryManager, Repository, etc."""
+    def __init__(self, supplier: SupplierAdapter = None):
+        supplier = supplier or ExternalSupplierAdapter(ExternalSupplierAPI())
+        self._repo = InMemoryProductRepository()
+        self._manager = InventoryManager(self._repo, supplier)
+        self._config = InventoryConfig()
 
-    def __init__(self, repository=None, supplier=None, strategy=None, config=None):
-        self._config = config if config is not None else InventoryConfig()
-        self._repo = repository if repository is not None else InMemoryProductRepository()
-        self._manager = InventoryManager(
-            self._repo,
-            supplier if supplier is not None else ExternalSupplierAdapter(ExternalSupplierAPI()),
-            strategy if strategy is not None else FixedReorderStrategy(),
-            self._config,
-        )
-
-    def register_product(self, category, product_id, name, stock=0, **attrs):
-        if stock < 0:
-            raise ValueError("El stock inicial no puede ser negativo")
-        product = ProductFactory.create(category, product_id, name, stock, **attrs)
+    def register_product(self, category, sku, name, stock, demand_history=None):
+        product = ProductFactory.create_product(category, sku, name, stock, demand_history)
         self._repo.add(product)
         return product
 
-    def set_min_stock_threshold(self, value):
-        self._config.min_stock_threshold = value
+    def set_threshold(self, threshold: int):
+        self._config.min_stock_threshold = threshold
 
-    def set_reorder_strategy(self, strategy, category=None):
-        self._manager.set_strategy(strategy, category)
+    def set_reorder_strategy(self, category, strategy: ReorderStrategy):
+        self._manager.set_strategy(category, strategy)
 
-    def set_supplier(self, supplier, category=None):
-        self._manager.set_supplier(supplier, category)
-
-    def set_current_month(self, month):
-        self._manager.set_current_month(month)
-
-    def add_alert_channel(self, observer):
+    def subscribe_alert(self, observer: StockObserver):
         self._manager.attach(observer)
 
-    def remove_alert_channel(self, observer):
-        self._manager.detach(observer)
-
-    def record_sale(self, product_id, units):
-        self._manager.record_sale(product_id, units)
-
-    def receive_shipment(self, product_id, units):
-        self._manager.receive_shipment(product_id, units)
+    def update_stock(self, sku, new_stock):
+        product = self._repo.get(sku)
+        product.stock = new_stock
+        self._repo.update(product)
 
     def monitor_inventory(self):
-        return self._manager.monitor_inventory()
-
-    def stock_report(self):
-        return self._manager.stock_report()
+        orders = self._manager.check_stock()
+        for o in orders:
+            print(f"[ORDEN] {o}")
+        return orders
 
 
 # ==========================================================
 # EJEMPLO DE USO
 # ==========================================================
+
 if __name__ == "__main__":
-    print("=== Singleton: una sola configuración compartida ===")
-    print("InventoryConfig() is InventoryConfig():", InventoryConfig() is InventoryConfig())
+    inventory = InventoryFacade()
 
-    print("\n=== Configuración del sistema ===")
-    inventario = InventoryFacade()
-    inventario.set_current_month(12)              # diciembre: activa la estrategia estacional
+    # Alertas desacopladas
+    inventory.subscribe_alert(EmailAlert())
+    inventory.subscribe_alert(SMSAlert())
 
-    email, sms, slack = EmailAlert("logistica@empresa.com"), SMSAlert("+57 300 000 0000"), SlackAlert("#inventario")
-    for canal in (email, sms, slack):
-        inventario.add_alert_channel(canal)
+    # Productos (Factory + Repository)
+    inventory.register_product("electronica", "E-001", "Laptop", 4)
+    inventory.register_product("alimentos", "A-001", "Arroz", 3, demand_history=[40, 60, 50])
+    inventory.register_product("ropa", "R-001", "Camiseta", 25)
 
-    inventario.set_reorder_strategy(SeasonalReorderStrategy(FixedReorderStrategy(50)), "electronica")
-    inventario.set_reorder_strategy(DemandBasedReorderStrategy(), "perecederos")
-    inventario.set_supplier(GlobalLogisticsAdapter(GlobalLogisticsAPI()), "perecederos")
+    # Estrategias por categoría
+    inventory.set_reorder_strategy("alimentos", DemandBasedReorderStrategy())
+    inventory.set_reorder_strategy("electronica", SeasonalReorderStrategy(base=20))
 
-    inventario.register_product("electronica", "PROD-102", "Teclado Mecánico", stock=5)
-    inventario.register_product("perecederos", "PROD-201", "Yogurt", stock=8, sales_history=[30, 28, 35, 32])
-    inventario.register_product("ropa", "PROD-301", "Camiseta", stock=50, size="L")
+    # Singleton: cualquier módulo ve el mismo umbral
+    assert InventoryConfig() is InventoryConfig()
+    print(f"Umbral: {InventoryConfig().min_stock_threshold}\n")
 
-    print("\n=== Monitoreo 1: alertas + órdenes automáticas ===")
-    for r in inventario.monitor_inventory():
-        print("  ->", r)
+    inventory.monitor_inventory()
 
-    print("\n=== Monitoreo 2: sin duplicados (hay órdenes pendientes) ===")
-    print("  ->", inventario.monitor_inventory())
-
-    print("\n=== Cambios en runtime: llega pedido, sube el umbral y se retira Slack ===")
-    inventario.remove_alert_channel(slack)
-    inventario.receive_shipment("PROD-102", 120)
-    inventario.set_min_stock_threshold(60)
-    for r in inventario.monitor_inventory():
-        print("  ->", r)
-
-    print("\n=== Reporte ===")
-    for row in inventario.stock_report():
-        print(" ", row)
-
-    print("\n=== Validaciones ===")
-    for label, action in [
-        ("Categoría inexistente", lambda: inventario.register_product("juguetes", "X-1", "Robot")),
-        ("Stock inicial negativo", lambda: inventario.register_product("ropa", "X-2", "Gorra", stock=-1)),
-        ("Producto duplicado", lambda: inventario.register_product("ropa", "PROD-301", "Otra")),
-        ("Venta mayor al stock", lambda: inventario.record_sale("PROD-301", 999)),
-        ("Producto inexistente", lambda: inventario.receive_shipment("NO-EXISTE", 5)),
-        ("Umbral inválido", lambda: inventario.set_min_stock_threshold(-3)),
-        ("Mes inválido", lambda: inventario.set_current_month(13)),
-    ]:
-        try:
-            action()
-        except (ValueError, KeyError) as exc:
-            print(f"{label}: {exc.args[0]}")
-
-
+    # Cambio de proveedor sin tocar el núcleo
+    print("\n--- Cambio de proveedor (Adapter) ---")
+    inventory2 = InventoryFacade(LegacySupplierAdapter(LegacySupplierAPI()))
+    inventory2.subscribe_alert(EmailAlert())
+    inventory2.register_product("ropa", "R-002", "Chaqueta", 2)
+    inventory2.monitor_inventory()
 '''
 PREGUNTAS
 
