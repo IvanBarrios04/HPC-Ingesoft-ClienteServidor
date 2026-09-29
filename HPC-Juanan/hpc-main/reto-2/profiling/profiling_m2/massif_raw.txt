@@ -1,0 +1,6 @@
+==2416== Massif, a heap profiler
+==2416== Copyright (C) 2003-2017, and GNU GPL'd, by Nicholas Nethercote
+==2416== Using Valgrind-3.19.0 and LibVEX; rerun with -h for copyright info
+==2416== Command: ./secuencial 10000000 0.5 31
+==2416== 
+70.982194==2416== 

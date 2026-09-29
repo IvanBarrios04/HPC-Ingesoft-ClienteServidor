@@ -1,0 +1,39 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 93K of event 'cpu-clock:ppp'
+# Event count (approx.): 23457750000
+#
+# Overhead  Command     Shared Object      Symbol                            
+# ........  ..........  .................  ..................................
+#
+    42.32%  secuencial  secuencial         [.] update_road
+    25.08%  secuencial  secuencial         [.] count_moved_cars
+    16.89%  secuencial  secuencial         [.] count_cars
+    15.38%  secuencial  secuencial         [.] copy_road
+     0.16%  secuencial  secuencial         [.] initialize_road
+     0.07%  secuencial  libc.so.6          [.] __random
+     0.04%  secuencial  libc.so.6          [.] __random_r
+     0.03%  secuencial  [kernel.kallsyms]  [k] clear_page_erms
+     0.01%  secuencial  libc.so.6          [.] rand
+     0.00%  secuencial  [kernel.kallsyms]  [k] update_sd_lb_stats.constprop.0
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_unlock_irqrestore
+     0.00%  secuencial  [kernel.kallsyms]  [k] do_user_addr_fault
+     0.00%  secuencial  [kernel.kallsyms]  [k] rebalance_domains
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_unlock_irq
+     0.00%  secuencial  [kernel.kallsyms]  [k] acct_collect
+     0.00%  secuencial  [kernel.kallsyms]  [k] charge_memcg
+     0.00%  secuencial  [kernel.kallsyms]  [k] copy_mc_enhanced_fast_string
+     0.00%  secuencial  [kernel.kallsyms]  [k] find_vma
+     0.00%  secuencial  [kernel.kallsyms]  [k] lock_page_memcg
+     0.00%  secuencial  [kernel.kallsyms]  [k] lock_timer_base
+     0.00%  secuencial  [kernel.kallsyms]  [k] page_remove_rmap
+     0.00%  secuencial  [kernel.kallsyms]  [k] update_blocked_averages
+     0.00%  secuencial  [kernel.kallsyms]  [k] update_group_capacity
+
+
+#
+# (Tip: To see list of saved events and attributes: perf evlist -v)
+#

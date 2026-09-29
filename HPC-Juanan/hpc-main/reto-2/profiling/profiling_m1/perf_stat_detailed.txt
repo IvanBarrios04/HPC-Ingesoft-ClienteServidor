@@ -1,0 +1,22 @@
+
+ Performance counter stats for './secuencial 10000000 0.5 31':
+
+          23116.84 msec task-clock                       #    1.000 CPUs utilized          
+                54      context-switches                 #    2.336 /sec                   
+                 2      cpu-migrations                   #    0.087 /sec                   
+              1194      page-faults                      #   51.651 /sec                   
+   <not supported>      cycles                                                      
+   <not supported>      instructions                                                
+   <not supported>      branches                                                    
+   <not supported>      branch-misses                                               
+   <not supported>      L1-dcache-loads                                             
+   <not supported>      L1-dcache-load-misses                                       
+   <not supported>      LLC-loads                                                   
+   <not supported>      LLC-load-misses                                             
+
+      23.116864956 seconds time elapsed
+
+      23.109154000 seconds user
+       0.008000000 seconds sys
+
+

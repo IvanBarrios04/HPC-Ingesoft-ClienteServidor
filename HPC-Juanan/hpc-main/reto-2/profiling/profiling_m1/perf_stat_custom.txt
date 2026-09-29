@@ -1,0 +1,16 @@
+
+ Performance counter stats for './secuencial 10000000 0.5 31':
+
+          22956.65 msec task-clock                       #    1.000 CPUs utilized          
+                74      context-switches                 #    3.223 /sec                   
+                 2      cpu-migrations                   #    0.087 /sec                   
+              1195      page-faults                      #   52.055 /sec                   
+              1195      minor-faults                     #   52.055 /sec                   
+                 0      major-faults                     #    0.000 /sec                   
+
+      22.956863012 seconds time elapsed
+
+      22.944911000 seconds user
+       0.011998000 seconds sys
+
+

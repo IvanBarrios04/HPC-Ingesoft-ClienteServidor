@@ -1,0 +1,80 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 1M of event 'cpu-clock:pppH'
+# Event count (approx.): 304314500000
+#
+# Overhead  Command     Shared Object      Symbol                                       
+# ........  ..........  .................  .............................................
+#
+    99.78%  secuencial  secuencial         [.] matrix_product
+     0.15%  secuencial  libc.so.6          [.] __random
+     0.02%  secuencial  libc.so.6          [.] __random_r
+     0.02%  secuencial  secuencial         [.] random_vector
+     0.01%  secuencial  [kernel.kallsyms]  [k] handle_softirqs
+     0.01%  secuencial  [kernel.kallsyms]  [k] do_user_addr_fault
+     0.00%  secuencial  secuencial         [.] rand@plt
+     0.00%  secuencial  libc.so.6          [.] rand
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_lock
+     0.00%  secuencial  [kernel.kallsyms]  [k] charge_memcg
+     0.00%  secuencial  [kernel.kallsyms]  [k] __handle_mm_fault
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_unlock_irq
+     0.00%  secuencial  [kernel.kallsyms]  [k] update_blocked_averages
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_unlock_irqrestore
+     0.00%  secuencial  libc.so.6          [.] _int_malloc
+     0.00%  secuencial  [kernel.kallsyms]  [k] count_memcg_events.constprop.0
+     0.00%  secuencial  [kernel.kallsyms]  [k] finish_task_switch.isra.0
+     0.00%  secuencial  [kernel.kallsyms]  [k] pmd_page_vaddr
+     0.00%  secuencial  [kernel.kallsyms]  [k] vma_alloc_folio
+     0.00%  secuencial  [kernel.kallsyms]  [k] __alloc_pages
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_trylock
+     0.00%  secuencial  [kernel.kallsyms]  [k] clear_page_erms
+     0.00%  secuencial  [kernel.kallsyms]  [k] __rcu_read_lock
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_unlock
+     0.00%  secuencial  [kernel.kallsyms]  [k] blk_cgroup_congested
+     0.00%  secuencial  [kernel.kallsyms]  [k] mt_find
+     0.00%  secuencial  [kernel.kallsyms]  [k] __list_del_entry_valid
+     0.00%  secuencial  [kernel.kallsyms]  [k] get_mem_cgroup_from_mm
+     0.00%  secuencial  [kernel.kallsyms]  [k] handle_mm_fault
+     0.00%  secuencial  [kernel.kallsyms]  [k] load_balance
+     0.00%  secuencial  [kernel.kallsyms]  [k] mem_cgroup_from_task
+     0.00%  secuencial  [kernel.kallsyms]  [k] mtree_range_walk
+     0.00%  secuencial  [kernel.kallsyms]  [k] page_add_new_anon_rmap
+     0.00%  secuencial  [kernel.kallsyms]  [k] tcp_orphan_count_sum
+     0.00%  secuencial  [kernel.kallsyms]  [k] try_charge_memcg
+     0.00%  secuencial  [kernel.kallsyms]  [k] update_sd_lb_stats.constprop.0
+     0.00%  secuencial  [gve]              [k] gve_clean_tx_done_dqo
+     0.00%  secuencial  [kernel.kallsyms]  [k] __get_user_8
+     0.00%  secuencial  [kernel.kallsyms]  [k] __mem_cgroup_uncharge_list
+     0.00%  secuencial  [kernel.kallsyms]  [k] __mod_lruvec_page_state
+     0.00%  secuencial  [kernel.kallsyms]  [k] __neigh_update
+     0.00%  secuencial  [kernel.kallsyms]  [k] __raw_callee_save___pv_queued_spin_unlock
+     0.00%  secuencial  [kernel.kallsyms]  [k] __rcu_read_unlock
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_rq_lock_irqsave
+     0.00%  secuencial  [kernel.kallsyms]  [k] arch_get_unmapped_area_topdown
+     0.00%  secuencial  [kernel.kallsyms]  [k] down_read_trylock
+     0.00%  secuencial  [kernel.kallsyms]  [k] find_vma
+     0.00%  secuencial  [kernel.kallsyms]  [k] folio_add_lru
+     0.00%  secuencial  [kernel.kallsyms]  [k] idle_cpu
+     0.00%  secuencial  [kernel.kallsyms]  [k] iowrite32
+     0.00%  secuencial  [kernel.kallsyms]  [k] ip_skb_dst_mtu
+     0.00%  secuencial  [kernel.kallsyms]  [k] neigh_resolve_output
+     0.00%  secuencial  [kernel.kallsyms]  [k] p4d_offset
+     0.00%  secuencial  [kernel.kallsyms]  [k] page_counter_try_charge
+     0.00%  secuencial  [kernel.kallsyms]  [k] perf_iterate_ctx
+     0.00%  secuencial  [kernel.kallsyms]  [k] policy_nodemask
+     0.00%  secuencial  [kernel.kallsyms]  [k] release_pages
+     0.00%  secuencial  [kernel.kallsyms]  [k] run_rebalance_domains
+     0.00%  secuencial  [kernel.kallsyms]  [k] security_sock_rcv_skb
+     0.00%  secuencial  [kernel.kallsyms]  [k] syscall_enter_from_user_mode
+     0.00%  secuencial  [kernel.kallsyms]  [k] tcp_orphan_update
+     0.00%  secuencial  [kernel.kallsyms]  [k] up_read
+     0.00%  secuencial  libc.so.6          [.] __brk
+     0.00%  secuencial  libc.so.6          [.] sysmalloc
+
+
+#
+# (Tip: To record callchains for each sample: perf record -g)
+#

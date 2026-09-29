@@ -1,0 +1,6 @@
+==12792== Massif, a heap profiler
+==12792== Copyright (C) 2003-2017, and GNU GPL'd, by Nicholas Nethercote
+==12792== Using Valgrind-3.19.0 and LibVEX; rerun with -h for copyright info
+==12792== Command: ./secuencial 1000
+==12792== 
+3.907825==12792== 

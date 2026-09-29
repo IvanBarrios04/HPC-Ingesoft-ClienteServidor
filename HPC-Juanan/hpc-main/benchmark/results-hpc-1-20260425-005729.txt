@@ -1,0 +1,201 @@
+======= System info =======
+
+== CPU ==
+Architecture:                            x86_64
+CPU op-mode(s):                          32-bit, 64-bit
+Address sizes:                           48 bits physical, 48 bits virtual
+Byte Order:                              Little Endian
+CPU(s):                                  8
+On-line CPU(s) list:                     0-7
+Vendor ID:                               AuthenticAMD
+Model name:                              AMD EPYC 7B13
+CPU family:                              25
+Model:                                   1
+Thread(s) per core:                      2
+Core(s) per socket:                      4
+Socket(s):                               1
+Stepping:                                0
+BogoMIPS:                                6099.99
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext invpcid_single ssbd ibrs ibpb stibp vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 clzero xsaveerptr arat umip vaes vpclmulqdq rdpid fsrm
+Hypervisor vendor:                       KVM
+Virtualization type:                     full
+L1d cache:                               128 KiB (4 instances)
+L1i cache:                               128 KiB (4 instances)
+L2 cache:                                2 MiB (4 instances)
+L3 cache:                                32 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-7
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Mitigation; safe RET
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP conditional; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Mitigation; Clear CPU buffers
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Not affected
+
+== Free memory ==
+               total        used        free      shared  buff/cache   available
+Mem:            31Gi       785Mi        30Gi       556Ki       895Mi        30Gi
+Swap:             0B          0B          0B
+
+== Operating system ==
+Linux hpc-1 6.1.0-44-cloud-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.164-1 (2026-03-09) x86_64 GNU/Linux
+
+======= CPU =======
+
+== Testing with 1 thread  ==
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Prime numbers limit: 20000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:  1560.53
+
+General statistics:
+    total time:                          60.0001s
+    total number of events:              93633
+
+Latency (ms):
+         min:                                    0.63
+         avg:                                    0.64
+         max:                                    1.80
+         95th percentile:                        0.65
+         sum:                                59987.07
+
+Threads fairness:
+    events (avg/stddev):           93633.0000/0.00
+    execution time (avg/stddev):   59.9871/0.00
+
+
+== Testing with all available threads ==
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Prime numbers limit: 20000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:  6918.77
+
+General statistics:
+    total time:                          60.0012s
+    total number of events:              415138
+
+Latency (ms):
+         min:                                    0.63
+         avg:                                    1.16
+         max:                                   32.90
+         95th percentile:                        1.16
+         sum:                               479941.69
+
+Threads fairness:
+    events (avg/stddev):           51892.2500/157.48
+    execution time (avg/stddev):   59.9927/0.00
+
+
+======= Memory =======
+
+== Input ==
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Running memory speed test with the following options:
+  block size: 1024KiB
+  total size: 10240MiB
+  operation: read
+  scope: global
+
+Initializing worker threads...
+
+Threads started!
+
+Total operations: 10240 (50358.78 per second)
+
+10240.00 MiB transferred (50358.78 MiB/sec)
+
+
+General statistics:
+    total time:                          0.2027s
+    total number of events:              10240
+
+Latency (ms):
+         min:                                    0.02
+         avg:                                    0.02
+         max:                                    0.04
+         95th percentile:                        0.02
+         sum:                                  200.94
+
+Threads fairness:
+    events (avg/stddev):           10240.0000/0.00
+    execution time (avg/stddev):   0.2009/0.00
+
+
+== Output ==
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Running memory speed test with the following options:
+  block size: 1024KiB
+  total size: 10240MiB
+  operation: write
+  scope: global
+
+Initializing worker threads...
+
+Threads started!
+
+Total operations: 10240 (30618.62 per second)
+
+10240.00 MiB transferred (30618.62 MiB/sec)
+
+
+General statistics:
+    total time:                          0.3338s
+    total number of events:              10240
+
+Latency (ms):
+         min:                                    0.03
+         avg:                                    0.03
+         max:                                    0.13
+         95th percentile:                        0.03
+         sum:                                  332.08
+
+Threads fairness:
+    events (avg/stddev):           10240.0000/0.00
+    execution time (avg/stddev):   0.3321/0.00
+
+

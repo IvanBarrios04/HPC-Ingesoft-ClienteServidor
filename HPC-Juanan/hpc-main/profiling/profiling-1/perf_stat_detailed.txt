@@ -1,0 +1,22 @@
+
+ Performance counter stats for './secuencial 4000':
+
+         273189.20 msec task-clock                       #    1.000 CPUs utilized          
+              1060      context-switches                 #    3.880 /sec                   
+                 4      cpu-migrations                   #    0.015 /sec                   
+             47005      page-faults                      #  172.060 /sec                   
+   <not supported>      cycles                                                      
+   <not supported>      instructions                                                
+   <not supported>      branches                                                    
+   <not supported>      branch-misses                                               
+   <not supported>      L1-dcache-loads                                             
+   <not supported>      L1-dcache-load-misses                                       
+   <not supported>      LLC-loads                                                   
+   <not supported>      LLC-load-misses                                             
+
+     273.212838220 seconds time elapsed
+
+     273.060351000 seconds user
+       0.139991000 seconds sys
+
+

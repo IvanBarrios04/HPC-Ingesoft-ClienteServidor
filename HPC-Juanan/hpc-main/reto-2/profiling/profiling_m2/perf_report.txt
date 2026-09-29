@@ -1,0 +1,40 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 115K of event 'cpu-clock:pppH'
+# Event count (approx.): 28885500000
+#
+# Overhead  Command     Shared Object      Symbol                            
+# ........  ..........  .................  ..................................
+#
+    39.40%  secuencial  secuencial         [.] update_road
+    26.52%  secuencial  secuencial         [.] count_moved_cars
+    21.33%  secuencial  secuencial         [.] count_cars
+    12.07%  secuencial  secuencial         [.] copy_road
+     0.50%  secuencial  libc.so.6          [.] __random
+     0.05%  secuencial  libc.so.6          [.] __random_r
+     0.04%  secuencial  [kernel.kallsyms]  [k] clear_page_erms
+     0.04%  secuencial  secuencial         [.] initialize_road
+     0.02%  secuencial  secuencial         [.] rand@plt
+     0.01%  secuencial  libc.so.6          [.] rand
+     0.00%  secuencial  [kernel.kallsyms]  [k] charge_memcg
+     0.00%  secuencial  [kernel.kallsyms]  [k] update_blocked_averages
+     0.00%  secuencial  [kernel.kallsyms]  [k] __bitmap_and
+     0.00%  secuencial  [kernel.kallsyms]  [k] _find_next_and_bit
+     0.00%  secuencial  [kernel.kallsyms]  [k] load_balance
+     0.00%  secuencial  [kernel.kallsyms]  [k] update_sd_lb_stats.constprop.0
+     0.00%  secuencial  [kernel.kallsyms]  [k] __handle_mm_fault
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_unlock_irq
+     0.00%  secuencial  [kernel.kallsyms]  [k] _raw_spin_unlock_irqrestore
+     0.00%  secuencial  [kernel.kallsyms]  [k] copy_mc_enhanced_fast_string
+     0.00%  secuencial  [kernel.kallsyms]  [k] do_user_addr_fault
+     0.00%  secuencial  [kernel.kallsyms]  [k] rebalance_domains
+     0.00%  secuencial  [kernel.kallsyms]  [k] release_pages
+     0.00%  secuencial  [kernel.kallsyms]  [k] uncharge_folio
+
+
+#
+# (Tip: For tracepoint events, try: perf report -s trace_fields)
+#

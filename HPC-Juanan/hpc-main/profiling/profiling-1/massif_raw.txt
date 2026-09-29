@@ -1,0 +1,6 @@
+==8731== Massif, a heap profiler
+==8731== Copyright (C) 2003-2017, and GNU GPL'd, by Nicholas Nethercote
+==8731== Using Valgrind-3.19.0 and LibVEX; rerun with -h for copyright info
+==8731== Command: ./secuencial 1000
+==8731== 
+3.717037==8731== 
