@@ -1,5 +1,4 @@
 /*
- * Benchmark de multiplicación de matrices paralela con pthreads (sin OpenMP).
  *
  * Prueba N = {500, 1000, 2000, 4000, 8000} x Hilos = {1,2,4,8,16},
  * 10 repeticiones cada combinación, y escribe cada tiempo en
